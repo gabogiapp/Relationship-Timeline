@@ -39,17 +39,22 @@ const Timeline = () => {
 
   const handleAddEvent = async (eventData) => {
     try {
-      const response = await axios.post('/api/timeline', eventData);
-      const newEvent = timelineManager.addEvent(response.data);
+      // Extract media files from eventData
+      const { media, ...eventWithoutMedia } = eventData;
+      
+      // Create the event (with or without media)
+      const newEvent = timelineManager.addEvent({
+        ...eventWithoutMedia,
+        id: `event_${Date.now()}`,
+        media: media || []
+      });
+      
       setEvents(timelineManager.getAllEvents());
       setShowAddModal(false);
       toast.success('Event added successfully!');
     } catch (error) {
-      // For testing, add to sample data
-      const newEvent = timelineManager.addEvent(eventData);
-      setEvents(timelineManager.getAllEvents());
-      setShowAddModal(false);
-      toast.success('Event added successfully! (Demo mode)');
+      console.error('Error adding event:', error);
+      toast.error('Failed to add event');
     }
   };
 
@@ -87,10 +92,7 @@ const Timeline = () => {
     }
   };
 
-  const handleToggleExpansion = (eventId) => {
-    timelineManager.toggleEventExpansion(eventId);
-    setEvents([...timelineManager.getAllEvents()]); // Force re-render
-  };
+  // Removed toggle expansion functionality - now clicking opens focused modal
 
   const handleFocusEvent = (event) => {
     setFocusedEvent(event);
@@ -142,7 +144,6 @@ const Timeline = () => {
               event={event}
               onEdit={setEditingEvent}
               onDelete={handleDeleteEvent}
-              onToggleExpansion={handleToggleExpansion}
               onFocus={handleFocusEvent}
             />
           ))}

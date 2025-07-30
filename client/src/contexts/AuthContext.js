@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
 import toast from 'react-hot-toast';
+import { auth, isSupabaseAvailable } from '../lib/supabase';
 
 const AuthContext = createContext();
 
@@ -17,68 +17,92 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Set up axios defaults
+  // Check if Supabase is available
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      setUser(JSON.parse(localStorage.getItem('user')));
-      setIsAuthenticated(true);
+    if (!isSupabaseAvailable()) {
+      console.warn('Supabase is not configured. Please check your environment variables.');
+      setLoading(false);
+      return;
     }
-    setLoading(false);
+
+    // Get initial session
+    const getInitialSession = async () => {
+      try {
+        const currentUser = await auth.getCurrentUser();
+        if (currentUser) {
+          setUser(currentUser);
+          setIsAuthenticated(true);
+        }
+      } catch (error) {
+        console.error('Error getting initial session:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getInitialSession();
+
+    // Listen for auth state changes
+    const { data: { subscription } } = auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        setUser(session.user);
+        setIsAuthenticated(true);
+        toast.success('Welcome back!');
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+        setIsAuthenticated(false);
+        toast.success('Logged out successfully');
+      }
+    });
+
+    return () => {
+      subscription?.unsubscribe();
+    };
   }, []);
 
   const login = async (email, password) => {
     try {
-      const response = await axios.post('/api/auth/login', { email, password });
-      const { token, user } = response.data;
-      
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      
+      const { user } = await auth.signIn(email, password);
       setUser(user);
       setIsAuthenticated(true);
       toast.success('Login successful!');
       return true;
     } catch (error) {
-      const message = error.response?.data?.message || 'Login failed';
+      const message = error.message || 'Login failed';
       toast.error(message);
       return false;
     }
   };
 
-  const register = async (username, email, password) => {
+  const register = async (email, password, userData = {}) => {
     try {
-      const response = await axios.post('/api/auth/register', { 
-        username, 
-        email, 
-        password 
-      });
-      const { token, user } = response.data;
-      
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      
-      setUser(user);
-      setIsAuthenticated(true);
-      toast.success('Registration successful!');
-      return true;
+      const { user } = await auth.signUp(email, password, userData);
+      if (user) {
+        setUser(user);
+        setIsAuthenticated(true);
+        toast.success('Registration successful! Please check your email to verify your account.');
+        return true;
+      } else {
+        toast.success('Registration successful! Please check your email to verify your account.');
+        return true;
+      }
     } catch (error) {
-      const message = error.response?.data?.message || 'Registration failed';
+      const message = error.message || 'Registration failed';
       toast.error(message);
       return false;
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    delete axios.defaults.headers.common['Authorization'];
-    setUser(null);
-    setIsAuthenticated(false);
-    toast.success('Logged out successfully');
+  const logout = async () => {
+    try {
+      await auth.signOut();
+      setUser(null);
+      setIsAuthenticated(false);
+      toast.success('Logged out successfully');
+    } catch (error) {
+      console.error('Error during logout:', error);
+      toast.error('Error during logout');
+    }
   };
 
   const value = {

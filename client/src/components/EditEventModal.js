@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { X, Palette } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, Palette, Upload, Image, File, Trash2, Video, Music } from 'lucide-react';
+import MediaService from '../services/mediaService';
 
 const EditEventModal = ({ event, onClose, onEdit }) => {
   const [formData, setFormData] = useState({
@@ -11,6 +12,10 @@ const EditEventModal = ({ event, onClose, onEdit }) => {
   });
 
   const [showColorPicker, setShowColorPicker] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef();
+  const mediaService = new MediaService();
 
   const colorOptions = [
     '#3B82F6', '#EF4444', '#10B981', '#F59E0B', 
@@ -26,6 +31,8 @@ const EditEventModal = ({ event, onClose, onEdit }) => {
         category: event.category || '',
         color: event.color || '#3B82F6'
       });
+      // Initialize uploaded files from existing media
+      setUploadedFiles(event.media || []);
     }
   }, [event]);
 
@@ -36,13 +43,69 @@ const EditEventModal = ({ event, onClose, onEdit }) => {
     });
   };
 
+  const handleFileUpload = async (files) => {
+    setUploading(true);
+    try {
+      const uploadPromises = Array.from(files).map(async (file) => {
+        // Validate file
+        mediaService.validateFile(file);
+        
+        // Compress image if needed
+        const processedFile = await mediaService.compressImage(file);
+        
+        // Generate a temporary event ID for upload
+        const tempEventId = `temp_${Date.now()}`;
+        
+        // Upload file
+        const uploadResult = await mediaService.uploadFile(processedFile, tempEventId);
+        
+        return {
+          ...uploadResult,
+          originalName: file.name,
+          tempEventId
+        };
+      });
+      
+      const uploadedResults = await Promise.all(uploadPromises);
+      setUploadedFiles(prev => [...prev, ...uploadedResults]);
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert(`Upload failed: ${error.message}`);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleFileSelect = (e) => {
+    const files = e.target.files;
+    if (files.length > 0) {
+      handleFileUpload(files);
+    }
+  };
+
+  const removeFile = (index) => {
+    setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData.title.trim()) {
       alert('Please enter a title');
       return;
     }
-    onEdit(formData);
+    
+    // Include uploaded files in the event data
+    const eventData = {
+      ...formData,
+      media: uploadedFiles.map(file => ({
+        url: file.url,
+        path: file.path,
+        type: file.type,
+        name: file.originalName || file.name
+      }))
+    };
+    
+    onEdit(eventData);
   };
 
   if (!event) return null;
@@ -115,29 +178,63 @@ const EditEventModal = ({ event, onClose, onEdit }) => {
             />
           </div>
 
+          {/* File Upload Section */}
           <div className="form-group">
-            <label htmlFor="imageUrl" className="form-label">Image URL</label>
-            <input
-              type="url"
-              id="imageUrl"
-              name="imageUrl"
-              value={formData.imageUrl || ''}
-              onChange={handleChange}
-              className="input"
-              placeholder="Paste an image URL"
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="videoUrl" className="form-label">Video URL (YouTube, MP4, etc.)</label>
-            <input
-              type="url"
-              id="videoUrl"
-              name="videoUrl"
-              value={formData.videoUrl || ''}
-              onChange={handleChange}
-              className="input"
-              placeholder="Paste a video URL"
-            />
+            <label className="form-label">Media Files</label>
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-gray-400 transition-colors">
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept="image/*,video/*,audio/*"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="flex items-center gap-2 mx-auto text-gray-600 hover:text-gray-800 disabled:opacity-50"
+              >
+                <Upload size={20} />
+                {uploading ? 'Uploading...' : 'Choose Files'}
+              </button>
+              <p className="text-xs text-gray-500 mt-2">
+                Supports images, videos, and audio files (max 10MB each)
+              </p>
+            </div>
+            
+            {/* Uploaded Files Preview */}
+            {uploadedFiles.length > 0 && (
+              <div className="mt-4 space-y-2">
+                <h4 className="text-sm font-medium text-gray-700">Uploaded Files:</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  {uploadedFiles.map((file, index) => (
+                    <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
+                      {file.type && file.type.startsWith('image/') ? (
+                        <Image size={16} className="text-blue-500" />
+                      ) : file.type && file.type.startsWith('video/') ? (
+                        <Video size={16} className="text-purple-500" />
+                      ) : file.type && file.type.startsWith('audio/') ? (
+                        <Music size={16} className="text-green-500" />
+                      ) : (
+                        <File size={16} className="text-gray-500" />
+                      )}
+                      <span className="text-xs truncate flex-1">
+                        {file.originalName || file.name || 'File'}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => removeFile(index)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="form-group">

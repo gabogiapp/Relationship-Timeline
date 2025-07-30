@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Eye, EyeOff, UserPlus } from 'lucide-react';
 
@@ -13,7 +13,15 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { register } = useAuth();
+  const { register, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirect to timeline if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleChange = (e) => {
     setFormData({
@@ -37,8 +45,12 @@ const Register = () => {
 
     setLoading(true);
     
-    await register(formData.username, formData.email, formData.password);
+    const success = await register(formData.email, formData.password, { username: formData.username });
     setLoading(false);
+    
+    if (success) {
+      navigate('/');
+    }
   };
 
   return (

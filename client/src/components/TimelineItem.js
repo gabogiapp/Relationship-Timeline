@@ -1,21 +1,13 @@
 import React from 'react';
-import { Edit, Trash2, ChevronDown, ChevronUp, Calendar, Clock, Tag } from 'lucide-react';
+import { Edit, Trash2, Calendar, Clock, Tag, Image, Video, Play, File } from 'lucide-react';
 
-const TimelineItem = ({ event, onEdit, onDelete, onToggleExpansion, onFocus }) => {
+const TimelineItem = ({ event, onEdit, onDelete, onFocus }) => {
   const handleClick = (e) => {
-    // Only open focus modal if not clicking on actions or chevron
-    if (
-      e.target.closest('.timeline-actions') ||
-      e.target.closest('.timeline-expand-indicator')
-    ) {
+    // Only open focus modal if not clicking on actions
+    if (e.target.closest('.timeline-actions')) {
       return;
     }
     if (onFocus) onFocus(event);
-  };
-
-  const handleExpand = (e) => {
-    e.stopPropagation();
-    onToggleExpansion(event.id);
   };
 
   const handleEdit = (e) => {
@@ -28,6 +20,10 @@ const TimelineItem = ({ event, onEdit, onDelete, onToggleExpansion, onFocus }) =
     onDelete(event.id);
   };
 
+  // Get the first media file for preview
+  const firstMedia = event.media && event.media.length > 0 ? event.media[0] : null;
+  const hasLegacyMedia = event.imageUrl || event.videoUrl;
+
   return (
     <div className="timeline-item">
       <div 
@@ -35,7 +31,7 @@ const TimelineItem = ({ event, onEdit, onDelete, onToggleExpansion, onFocus }) =
         style={{ backgroundColor: event.color }}
       ></div>
       <div 
-        className={`timeline-content ${event.isExpanded ? 'expanded' : ''}`}
+        className="timeline-content cursor-pointer hover:bg-gray-50 transition-colors"
         onClick={handleClick}
       >
         <div className="timeline-actions">
@@ -54,55 +50,79 @@ const TimelineItem = ({ event, onEdit, onDelete, onToggleExpansion, onFocus }) =
             <Trash2 size={14} />
           </button>
         </div>
-        <div className="timeline-header">
-          <h3 className="timeline-title">{event.title}</h3>
-          <div className="timeline-date">
-            <Calendar size={16} />
-            {event.formattedDate}
-          </div>
-        </div>
-        {event.isExpanded && (
-          <div className="timeline-details">
-            {event.imageUrl && (
-              <img
-                src={event.imageUrl}
-                alt="Timeline"
-                style={{ maxWidth: '100%', borderRadius: '0.5rem', marginBottom: '0.5rem' }}
-              />
-            )}
-            {event.videoUrl && (
-              <div style={{ marginBottom: '0.5rem' }}>
-                {event.videoUrl.includes('youtube') ? (
-                  <iframe
-                    width="100%"
-                    height="200"
-                    src={event.videoUrl.replace('watch?v=', 'embed/')}
-                    title="Timeline Video"
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
+        
+                 <div className="flex gap-6">
+           {/* Media Preview */}
+           {(firstMedia || hasLegacyMedia) && (
+             <div className="flex-shrink-0">
+               <div className="w-32 h-32 rounded-lg overflow-hidden bg-gray-100 relative shadow-md">
+                {firstMedia ? (
+                  firstMedia.type.startsWith('image/') ? (
+                    <img
+                      src={firstMedia.url}
+                      alt={firstMedia.name || 'Timeline media'}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        console.error('Image failed to load:', firstMedia.url);
+                        e.target.style.display = 'none';
+                      }}
+                    />
+                                     ) : firstMedia.type.startsWith('video/') ? (
+                     <div className="w-full h-full bg-gray-200 flex items-center justify-center relative">
+                       <Play size={32} className="text-gray-600" />
+                       <div className="absolute top-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
+                         <Video size={12} className="inline mr-1" />
+                       </div>
+                     </div>
+                   ) : (
+                     <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                       <File size={28} className="text-gray-600" />
+                     </div>
+                   )
+                ) : event.imageUrl ? (
+                  <img
+                    src={event.imageUrl}
+                    alt="Timeline"
+                    className="w-full h-full object-cover"
                   />
-                ) : (
-                  <video controls style={{ maxWidth: '100%', borderRadius: '0.5rem' }}>
-                    <source src={event.videoUrl} />
-                    Your browser does not support the video tag.
-                  </video>
-                )}
+                                 ) : event.videoUrl ? (
+                   <div className="w-full h-full bg-gray-200 flex items-center justify-center relative">
+                     <Play size={32} className="text-gray-600" />
+                     <div className="absolute top-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
+                       <Video size={12} className="inline mr-1" />
+                     </div>
+                   </div>
+                ) : null}
+              </div>
+            </div>
+          )}
+          
+          {/* Event Details */}
+          <div className="flex-1 min-w-0">
+            <div className="timeline-header">
+              <h3 className="timeline-title">{event.title}</h3>
+              <div className="timeline-date">
+                <Calendar size={16} />
+                {event.formattedDate}
+              </div>
+            </div>
+            
+            {/* Show category if available */}
+            {event.category && (
+              <div className="flex items-center gap-1 mt-1">
+                <Tag size={12} className="text-gray-400" />
+                <span className="text-xs text-gray-500">{event.category}</span>
               </div>
             )}
-            {event.description && (
-              <p className="timeline-description">{event.description}</p>
+            
+            {/* Show media count indicator */}
+            {event.media && event.media.length > 1 && (
+              <div className="flex items-center gap-1 mt-1">
+                <Image size={12} className="text-gray-400" />
+                <span className="text-xs text-gray-500">+{event.media.length - 1} more</span>
+              </div>
             )}
-            <div className="timeline-meta">
-              <span><Clock size={14} />{event.formattedTime}</span>
-              {event.category && (
-                <span><Tag size={14} />{event.category}</span>
-              )}
-            </div>
           </div>
-        )}
-        <div className="timeline-expand-indicator" onClick={handleExpand}>
-          {event.isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </div>
       </div>
     </div>

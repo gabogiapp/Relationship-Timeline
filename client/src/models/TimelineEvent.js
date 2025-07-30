@@ -8,6 +8,7 @@ class TimelineEvent {
     this.color = data.color || '#3B82F6';
     this.imageUrl = data.imageUrl || '';
     this.videoUrl = data.videoUrl || '';
+    this.media = data.media || []; // Add media property
     this.createdAt = data.createdAt ? new Date(data.createdAt) : new Date();
     this.userId = data.userId || null;
   }
@@ -54,6 +55,9 @@ class TimelineEvent {
     if (data.videoUrl !== undefined) {
       this.videoUrl = data.videoUrl;
     }
+    if (data.media !== undefined) {
+      this.media = data.media;
+    }
     return this;
   }
 
@@ -67,6 +71,7 @@ class TimelineEvent {
       color: this.color,
       imageUrl: this.imageUrl,
       videoUrl: this.videoUrl,
+      media: this.media, // Add media to JSON output
       createdAt: this.createdAt.toISOString(),
       userId: this.userId
     };
@@ -86,7 +91,15 @@ class TimelineEvent {
         color: '#3B82F6',
         category: 'Education',
         imageUrl: '',
-        videoUrl: ''
+        videoUrl: '',
+        media: [
+          {
+            url: 'https://images.unsplash.com/photo-1523050854058-8df90110c9e1?w=800&h=600&fit=crop',
+            name: 'graduation-ceremony.jpg',
+            type: 'image/jpeg',
+            path: 'sample/graduation.jpg'
+          }
+        ]
       }),
       new TimelineEvent({
         _id: 'sample2',
@@ -96,7 +109,15 @@ class TimelineEvent {
         color: '#10B981',
         category: 'Career',
         imageUrl: '',
-        videoUrl: ''
+        videoUrl: '',
+        media: [
+          {
+            url: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&h=600&fit=crop',
+            name: 'first-day-work.jpg',
+            type: 'image/jpeg',
+            path: 'sample/first-job.jpg'
+          }
+        ]
       }),
       new TimelineEvent({
         _id: 'sample3',
@@ -106,7 +127,15 @@ class TimelineEvent {
         color: '#F59E0B',
         category: 'Personal',
         imageUrl: '',
-        videoUrl: ''
+        videoUrl: '',
+        media: [
+          {
+            url: 'https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=800&h=600&fit=crop',
+            name: 'san-francisco.jpg',
+            type: 'image/jpeg',
+            path: 'sample/san-francisco.jpg'
+          }
+        ]
       }),
       new TimelineEvent({
         _id: 'sample4',
@@ -116,7 +145,15 @@ class TimelineEvent {
         color: '#8B5CF6',
         category: 'Work',
         imageUrl: '',
-        videoUrl: ''
+        videoUrl: '',
+        media: [
+          {
+            url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=600&fit=crop',
+            name: 'project-completion.jpg',
+            type: 'image/jpeg',
+            path: 'sample/project.jpg'
+          }
+        ]
       }),
       new TimelineEvent({
         _id: 'sample5',
@@ -126,7 +163,15 @@ class TimelineEvent {
         color: '#EF4444',
         category: 'Career',
         imageUrl: '',
-        videoUrl: ''
+        videoUrl: '',
+        media: [
+          {
+            url: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=600&fit=crop',
+            name: 'promotion-celebration.jpg',
+            type: 'image/jpeg',
+            path: 'sample/promotion.jpg'
+          }
+        ]
       }),
       new TimelineEvent({
         _id: 'sample6',
@@ -136,7 +181,15 @@ class TimelineEvent {
         color: '#06B6D4',
         category: 'Personal',
         imageUrl: '',
-        videoUrl: ''
+        videoUrl: '',
+        media: [
+          {
+            url: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&h=600&fit=crop',
+            name: 'new-house.jpg',
+            type: 'image/jpeg',
+            path: 'sample/house.jpg'
+          }
+        ]
       })
     ];
   }

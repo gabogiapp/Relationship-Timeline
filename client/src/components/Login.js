@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Eye, EyeOff, LogIn } from 'lucide-react';
 
@@ -10,7 +10,15 @@ const Login = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirect to timeline if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleChange = (e) => {
     setFormData({
@@ -23,8 +31,12 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     
-    await login(formData.email, formData.password);
+    const success = await login(formData.email, formData.password);
     setLoading(false);
+    
+    if (success) {
+      navigate('/');
+    }
   };
 
   return (

@@ -1,72 +1,79 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { Toaster } from 'react-hot-toast';
 import Login from './components/Login';
 import Register from './components/Register';
 import Timeline from './components/Timeline';
 import Navbar from './components/Navbar';
+import './App.css';
 
-// Protected Route Component
-const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated } = useAuth();
+// Import test functions
+import { testSupabase, testAuthFlow, testDatabaseOperations, runAllTests } from './lib/testSupabase';
+import { testMediaUpload, testStorageAccess } from './lib/testMediaUpload';
+
+// Make test functions available globally for browser console
+window.testSupabase = testSupabase;
+window.testAuthFlow = testAuthFlow;
+window.testDatabaseOperations = testDatabaseOperations;
+window.runAllTests = runAllTests;
+window.testMediaUpload = testMediaUpload;
+window.testStorageAccess = testStorageAccess;
+
+// Add a simple test function that can be called from console
+window.testSupabaseSetup = async () => {
+  console.log('🧪 Testing Supabase setup...');
+  console.log('Available test functions:');
+  console.log('  - testSupabase()');
+  console.log('  - testAuthFlow(email, password)');
+  console.log('  - testDatabaseOperations()');
+  console.log('  - runAllTests()');
+  
+  try {
+    const result = await testSupabase();
+    if (result) {
+      console.log('✅ Supabase is configured and working!');
+    } else {
+      console.log('❌ Supabase needs to be configured. Check SUPABASE_SETUP.md');
+    }
+  } catch (error) {
+    console.error('❌ Test failed:', error);
+  }
+};
+
+const PrivateRoute = ({ children }) => {
+  const { isAuthenticated, loading } = useAuth();
+  
+  if (loading) {
+    return <div className="loading">Loading...</div>;
+  }
+  
   return isAuthenticated ? children : <Navigate to="/login" />;
 };
 
-// Main App Component
-const AppContent = () => {
-  const { isAuthenticated } = useAuth();
-
+function App() {
   return (
-    <Router>
-      <div className="min-h-screen">
-        {isAuthenticated && <Navbar />}
-        <div className="container">
+    <AuthProvider>
+      <Router>
+        <div className="App">
+          <Toaster position="top-right" />
+          <Navbar />
           <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
             <Route 
               path="/" 
               element={
-                <ProtectedRoute>
+                <PrivateRoute>
                   <Timeline />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/login" 
-              element={
-                isAuthenticated ? <Navigate to="/" /> : <Login />
-              } 
-            />
-            <Route 
-              path="/register" 
-              element={
-                isAuthenticated ? <Navigate to="/" /> : <Register />
+                </PrivateRoute>
               } 
             />
           </Routes>
         </div>
-        <Toaster 
-          position="top-right"
-          toastOptions={{
-            duration: 4000,
-            style: {
-              background: '#363636',
-              color: '#fff',
-            },
-          }}
-        />
-      </div>
-    </Router>
-  );
-};
-
-// App Component with Auth Provider
-const App = () => {
-  return (
-    <AuthProvider>
-      <AppContent />
+      </Router>
     </AuthProvider>
   );
-};
+}
 
 export default App; 
