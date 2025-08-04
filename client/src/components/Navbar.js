@@ -8,9 +8,6 @@ const Navbar = () => {
   return (
     <nav className="navbar-fixed">
       <div className="navbar-content">
-        <div className="navbar-left">
-          <h1 className="text-xl font-bold text-gray-900">Timeline App</h1>
-        </div>
         
         <div className="navbar-right-absolute">
           <div className="flex items-center gap-2 text-gray-700">
