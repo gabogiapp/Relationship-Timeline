@@ -12,7 +12,7 @@ const Navbar = () => {
           <h1 className="text-xl font-bold text-gray-900">Timeline App</h1>
         </div>
         
-        <div className="navbar-right">
+        <div className="navbar-right-absolute">
           <div className="flex items-center gap-2 text-gray-700">
             <User size={20} />
             <span className="font-medium">{user?.username}</span>

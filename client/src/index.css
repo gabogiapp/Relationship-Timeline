@@ -73,6 +73,16 @@ code {
   gap: 1rem;
 }
 
+.navbar-right-absolute {
+  position: absolute;
+  top: 0.5rem;
+  right: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  z-index: 51;
+}
+
 /* Utility Classes */
 .container {
   max-width: 1200px;
