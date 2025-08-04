@@ -4,6 +4,7 @@
   text-align: center;
   min-height: 100vh;
   background-color: #f8fafc;
+  padding-top: 4rem; /* Add top padding to account for fixed navbar */
 }
 
 .loading {
