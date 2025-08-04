@@ -5,7 +5,9 @@ import { Toaster } from 'react-hot-toast';
 import Login from './components/Login';
 import Register from './components/Register';
 import Timeline from './components/Timeline';
+import Journal from './components/Journal';
 import Navbar from './components/Navbar';
+import HamburgerMenu from './components/HamburgerMenu';
 import './App.css';
 
 // Import test functions
@@ -58,6 +60,7 @@ function App() {
         <div className="App">
           <Toaster position="top-right" />
           <Navbar />
+          <HamburgerMenu />
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
@@ -66,6 +69,14 @@ function App() {
               element={
                 <PrivateRoute>
                   <Timeline />
+                </PrivateRoute>
+              } 
+            />
+            <Route 
+              path="/journal" 
+              element={
+                <PrivateRoute>
+                  <Journal />
                 </PrivateRoute>
               } 
             />
