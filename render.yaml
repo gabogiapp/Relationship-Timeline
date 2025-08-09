@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: timeline-app
+    env: node
+    plan: free
+    buildCommand: npm run render-build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+    # Add your Supabase environment variables in Render dashboard:
+    # REACT_APP_SUPABASE_URL
+    # REACT_APP_SUPABASE_ANON_KEY
