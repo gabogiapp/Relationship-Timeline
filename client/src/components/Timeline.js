@@ -108,18 +108,6 @@ const Timeline = () => {
 
   return (
     <div className="py-8">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Your Timeline</h1>
-          <p className="text-gray-600">
-            {events.length === 0 
-              ? "Start building your timeline by adding your first event"
-              : `${timelineManager.getEventCount()} event${timelineManager.getEventCount() === 1 ? '' : 's'} in your timeline`
-            }
-          </p>
-        </div>
-        {/* Removed main Add Event button from here */}
-      </div>
 
       {events.length === 0 ? (
         <div className="text-center py-12">

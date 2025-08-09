@@ -8,38 +8,6 @@ import Timeline from './components/Timeline';
 import Navbar from './components/Navbar';
 import './App.css';
 
-// Import test functions
-import { testSupabase, testAuthFlow, testDatabaseOperations, runAllTests } from './lib/testSupabase';
-import { testMediaUpload, testStorageAccess } from './lib/testMediaUpload';
-
-// Make test functions available globally for browser console
-window.testSupabase = testSupabase;
-window.testAuthFlow = testAuthFlow;
-window.testDatabaseOperations = testDatabaseOperations;
-window.runAllTests = runAllTests;
-window.testMediaUpload = testMediaUpload;
-window.testStorageAccess = testStorageAccess;
-
-// Add a simple test function that can be called from console
-window.testSupabaseSetup = async () => {
-  console.log('🧪 Testing Supabase setup...');
-  console.log('Available test functions:');
-  console.log('  - testSupabase()');
-  console.log('  - testAuthFlow(email, password)');
-  console.log('  - testDatabaseOperations()');
-  console.log('  - runAllTests()');
-  
-  try {
-    const result = await testSupabase();
-    if (result) {
-      console.log('✅ Supabase is configured and working!');
-    } else {
-      console.log('❌ Supabase needs to be configured. Check SUPABASE_SETUP.md');
-    }
-  } catch (error) {
-    console.error('❌ Test failed:', error);
-  }
-};
 
 const PrivateRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
