@@ -114,7 +114,8 @@ export const db = {
       .from(TABLES.EVENTS)
       .select('*')
       .eq('user_id', userId)
-      .order('event_date', { ascending: false });
+      .order('event_date', { ascending: false })
+      .order('event_time', { ascending: false });
     
     if (options.limit) {
       query = query.limit(options.limit);

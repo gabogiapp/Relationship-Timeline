@@ -10,14 +10,7 @@ class MediaService {
     try {
       // Check if Supabase is available
       if (!isSupabaseAvailable() || !supabase) {
-        // Demo mode - return a mock URL
-        console.warn('Supabase not configured. Using demo media upload.');
-        return {
-          url: URL.createObjectURL(file),
-          path: `demo/${eventId}/${Date.now()}.${file.name.split('.').pop()}`,
-          size: file.size,
-          type: file.type
-        };
+        throw new Error('Supabase is not configured. Please check your environment variables.');
       }
 
       // Get current user ID
@@ -65,9 +58,7 @@ class MediaService {
   async deleteFile(filePath) {
     try {
       if (!isSupabaseAvailable() || !supabase) {
-        // Demo mode - just return success
-        console.warn('Supabase not configured. Demo file deletion.');
-        return true;
+        throw new Error('Supabase is not configured. Please check your environment variables.');
       }
 
       const { error } = await supabase.storage
@@ -85,8 +76,7 @@ class MediaService {
   // Get file URL
   getFileUrl(filePath) {
     if (!isSupabaseAvailable() || !supabase) {
-      // Demo mode - return the path as URL
-      return filePath;
+      throw new Error('Supabase is not configured. Please check your environment variables.');
     }
 
     const { data: { publicUrl } } = supabase.storage

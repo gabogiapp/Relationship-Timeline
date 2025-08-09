@@ -101,15 +101,7 @@ class TimelineManager {
     return this.getAllEvents();
   }
 
-  // Load sample events
-  loadSampleEvents() {
-    this.clear();
-    const sampleEvents = TimelineEvent.createSampleEvents();
-    sampleEvents.forEach(event => {
-      this.addEvent(event);
-    });
-    return this.getAllEvents();
-  }
+
 
   // Export to JSON
   toJSON() {
