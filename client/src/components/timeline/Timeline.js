@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Plus, Calendar, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
-import AddEventModal from './AddEventModal';
-import EditEventModal from './EditEventModal';
+import AddEventModal from '../modals/AddEventModal';
+import EditEventModal from '../modals/EditEventModal';
 import TimelineItem from './TimelineItem';
-import TimelineManager from '../models/TimelineManager';
-import FocusedEventModal from './FocusedEventModal';
+import TimelineManager from '../../models/TimelineManager';
+import FocusedEventModal from '../modals/FocusedEventModal';
 import FloatingActionButton from './FloatingActionButton';
 
 const Timeline = () => {

@@ -1,17 +1,29 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { X, Palette, Upload, Image, File, Trash2, Video, Music } from 'lucide-react';
-import MediaService from '../services/mediaService';
+import React, { useState, useRef } from 'react';
+import { X, Palette, Upload, Image, File, Trash2 } from 'lucide-react';
+import MediaService from '../../services/mediaService';
 
-const EditEventModal = ({ event, onClose, onEdit }) => {
+const eventTypes = [
+  { label: 'Memory', value: 'memory', color: '#10B981' }, // green
+  { label: 'Journal', value: 'journal', color: '#3B82F6' }, // blue
+  { label: 'Emotion', value: 'emotion', color: '#EC4899' }, // pink
+  { label: 'Milestone', value: 'milestone', color: '#8B5CF6' }, // purple
+  { label: 'Goal', value: 'goal', color: '#F59E0B' }, // yellow
+];
+
+const AddEventModal = ({ onClose, onAdd, initialType, lockType }) => {
+  // Find the event type object for initialType
+  const initialTypeObj = eventTypes.find(t => t.value === initialType) || eventTypes[0];
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    date: '',
+    date: new Date().toISOString().slice(0, 16),
     category: '',
-    color: '#3B82F6'
+    type: initialTypeObj.value,
+    color: initialTypeObj.color
   });
 
   const [showColorPicker, setShowColorPicker] = useState(false);
+  const [colorOverridden, setColorOverridden] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef();
@@ -22,25 +34,29 @@ const EditEventModal = ({ event, onClose, onEdit }) => {
     '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16'
   ];
 
-  useEffect(() => {
-    if (event) {
-      setFormData({
-        title: event.title || '',
-        description: event.description || '',
-        date: new Date(event.date).toISOString().slice(0, 16),
-        category: event.category || '',
-        color: event.color || '#3B82F6'
-      });
-      // Initialize uploaded files from existing media
-      setUploadedFiles(event.media || []);
-    }
-  }, [event]);
-
+  // If lockType, do not allow changing type
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    const { name, value } = e.target;
+    if (name === 'type' && lockType) return;
+    if (name === 'type') {
+      const selectedType = eventTypes.find(t => t.value === value);
+      setFormData(prev => ({
+        ...prev,
+        type: value,
+        color: colorOverridden ? prev.color : (selectedType ? selectedType.color : prev.color)
+      }));
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value
+      });
+    }
+  };
+
+  const handleColorPick = (color) => {
+    setFormData({ ...formData, color });
+    setColorOverridden(true);
+    setShowColorPicker(false);
   };
 
   const handleFileUpload = async (files) => {
@@ -101,14 +117,12 @@ const EditEventModal = ({ event, onClose, onEdit }) => {
         url: file.url,
         path: file.path,
         type: file.type,
-        name: file.originalName || file.name
+        name: file.originalName
       }))
     };
     
-    onEdit(eventData);
+    onAdd(eventData);
   };
-
-  if (!event) return null;
 
   return (
     <div className="modal-overlay">
@@ -117,6 +131,32 @@ const EditEventModal = ({ event, onClose, onEdit }) => {
           <span aria-hidden="true">&times;</span>
         </button>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {/* Event Type Dropdown or Label */}
+          <div className="form-group">
+            <label htmlFor="type" className="form-label">
+              Event Type *
+            </label>
+            {lockType ? (
+              <div className="input" style={{ background: '#f3f4f6', color: initialTypeObj.color, fontWeight: 600 }}>
+                {initialTypeObj.label}
+              </div>
+            ) : (
+              <select
+                id="type"
+                name="type"
+                value={formData.type}
+                onChange={handleChange}
+                className="input"
+                required
+              >
+                {eventTypes.map((type) => (
+                  <option key={type.value} value={type.value}>{type.label}</option>
+                ))}
+              </select>
+            )}
+          </div>
+
+          {/* Title */}
           <div className="form-group">
             <label htmlFor="title" className="form-label">
               Title *
@@ -178,6 +218,41 @@ const EditEventModal = ({ event, onClose, onEdit }) => {
             />
           </div>
 
+          <div className="form-group">
+            <label className="form-label">Color</label>
+            <div className="flex items-center gap-3">
+              <div
+                className="w-8 h-8 rounded-full border-2 border-gray-300 cursor-pointer"
+                style={{ backgroundColor: formData.color }}
+                onClick={() => setShowColorPicker(!showColorPicker)}
+              />
+              <button
+                type="button"
+                onClick={() => setShowColorPicker(!showColorPicker)}
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
+              >
+                <Palette size={16} />
+                Choose Color
+              </button>
+            </div>
+            {showColorPicker && (
+              <div className="mt-3 flex gap-2 flex-wrap">
+                {colorOptions.map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    className="w-8 h-8 rounded-full border-2 border-gray-300 hover:border-gray-400 transition-colors"
+                    style={{ backgroundColor: color }}
+                    onClick={() => handleColorPick(color)}
+                  />
+                ))}
+              </div>
+            )}
+            <div className="text-xs text-gray-400 mt-1">
+              Default color is based on event type. You can override it.
+            </div>
+          </div>
+
           {/* File Upload Section */}
           <div className="form-group">
             <label className="form-label">Media Files</label>
@@ -211,18 +286,12 @@ const EditEventModal = ({ event, onClose, onEdit }) => {
                 <div className="grid grid-cols-2 gap-2">
                   {uploadedFiles.map((file, index) => (
                     <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-                      {file.type && file.type.startsWith('image/') ? (
+                      {file.type.startsWith('image/') ? (
                         <Image size={16} className="text-blue-500" />
-                      ) : file.type && file.type.startsWith('video/') ? (
-                        <Video size={16} className="text-purple-500" />
-                      ) : file.type && file.type.startsWith('audio/') ? (
-                        <Music size={16} className="text-green-500" />
                       ) : (
                         <File size={16} className="text-gray-500" />
                       )}
-                      <span className="text-xs truncate flex-1">
-                        {file.originalName || file.name || 'File'}
-                      </span>
+                      <span className="text-xs truncate flex-1">{file.originalName}</span>
                       <button
                         type="button"
                         onClick={() => removeFile(index)}
@@ -233,42 +302,6 @@ const EditEventModal = ({ event, onClose, onEdit }) => {
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Color</label>
-            <div className="flex items-center gap-3">
-              <div
-                className="w-8 h-8 rounded-full border-2 border-gray-300 cursor-pointer"
-                style={{ backgroundColor: formData.color }}
-                onClick={() => setShowColorPicker(!showColorPicker)}
-              />
-              <button
-                type="button"
-                onClick={() => setShowColorPicker(!showColorPicker)}
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
-              >
-                <Palette size={16} />
-                Choose Color
-              </button>
-            </div>
-            
-            {showColorPicker && (
-              <div className="mt-3 flex gap-2 flex-wrap">
-                {colorOptions.map((color) => (
-                  <button
-                    key={color}
-                    type="button"
-                    className="w-8 h-8 rounded-full border-2 border-gray-300 hover:border-gray-400 transition-colors"
-                    style={{ backgroundColor: color }}
-                    onClick={() => {
-                      setFormData({ ...formData, color });
-                      setShowColorPicker(false);
-                    }}
-                  />
-                ))}
               </div>
             )}
           </div>
@@ -285,7 +318,7 @@ const EditEventModal = ({ event, onClose, onEdit }) => {
               type="submit"
               className="btn btn-primary flex-1"
             >
-              Update Event
+              Add Event
             </button>
           </div>
         </form>
@@ -294,4 +327,4 @@ const EditEventModal = ({ event, onClose, onEdit }) => {
   );
 };
 
-export default EditEventModal; 
+export default AddEventModal; 
