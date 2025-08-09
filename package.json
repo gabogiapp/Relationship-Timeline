@@ -13,14 +13,20 @@
     "vercel-build": "npm run install-client && npm run build"
   },
   "dependencies": {
-    "express": "^4.18.2",
     "cors": "^2.8.5",
-    "dotenv": "^16.3.1"
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "react-scripts": "^5.0.1"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
   },
-  "keywords": ["timeline", "supabase", "react", "authentication"],
+  "keywords": [
+    "timeline",
+    "supabase",
+    "react",
+    "authentication"
+  ],
   "author": "Your Name",
   "license": "MIT"
-} 
+}
