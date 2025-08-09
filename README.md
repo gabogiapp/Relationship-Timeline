@@ -1,42 +1,42 @@
-# Timeline App
+# 💕 Relationship Timeline App
 
-A modern, interactive timeline application built with React, Node.js, and MongoDB. Create, manage, and visualize your personal timeline with beautiful UI and easy-to-use features.
+A modern, interactive timeline application built with **React**, **Node.js**, and **Supabase**. Create, manage, and visualize your relationship milestones with a beautiful UI and easy-to-use features.
 
-## Features
+## ✨ Features
 
-- 🔐 **User Authentication**: Secure sign up and login with JWT
+- 🔐 **User Authentication**: Secure sign up and login with Supabase Auth
 - 📅 **Interactive Timeline**: Beautiful timeline visualization with color-coded events
-- ➕ **Easy Event Management**: Add, edit, and delete timeline events
-- 🎨 **Customizable Events**: Choose colors and categories for your events
-- 📱 **Responsive Design**: Works perfectly on desktop and mobile devices
-- 🔒 **User Privacy**: Each user's timeline is private and secure
+- ➕ **Easy Event Management**: Add, edit, and delete timeline events with rich descriptions
+- 🎨 **Customizable Events**: Choose colors and categories for your special moments
+- 📱 **Responsive Design**: Works perfectly on desktop, tablet, and mobile devices
+- 🔒 **User Privacy**: Each user's timeline is completely private and secure
+- ⚡ **Real-time Updates**: Changes sync instantly across all devices
+- 🌐 **Cloud-based**: All data stored securely in Supabase cloud
 
-## Tech Stack
+## 🛠️ Tech Stack
 
 ### Backend
 - **Node.js** - Runtime environment
-- **Express.js** - Web framework
-- **MongoDB** - Database
-- **Mongoose** - ODM for MongoDB
-- **JWT** - Authentication
-- **bcryptjs** - Password hashing
-- **express-validator** - Input validation
+- **Express.js** - Web framework (serves React app in production)
+- **Supabase** - Database and Authentication (replaces MongoDB + JWT)
+- **CORS** - Cross-origin resource sharing
 
 ### Frontend
-- **React** - UI library
-- **React Router** - Client-side routing
-- **Axios** - HTTP client
-- **date-fns** - Date formatting
-- **Lucide React** - Icons
-- **React Hot Toast** - Notifications
+- **React 18** - Modern UI library with hooks
+- **React Router v6** - Client-side routing
+- **Axios** - HTTP client for API calls
+- **date-fns** - Date formatting and manipulation
+- **Lucide React** - Beautiful, consistent icons
+- **React Hot Toast** - Elegant notifications
+- **Supabase Client** - Real-time database operations
 
-## Prerequisites
+## 📋 Prerequisites
 
-Before running this application, make sure you have the following installed:
+Before running this application, make sure you have:
 
-- **Node.js** (v14 or higher)
-- **MongoDB** (local installation or MongoDB Atlas account)
-- **npm** or **yarn**
+- **Node.js** (v16 or higher) - [Download here](https://nodejs.org/)
+- **npm** (comes with Node.js)
+- **Supabase account** - [Sign up free](https://supabase.com)
 
 ## Installation
 
@@ -76,33 +76,51 @@ Before running this application, make sure you have the following installed:
    mongod
    ```
 
-## Running the Application
+## 🚀 Running the Application
 
-### Development Mode
+### Development Mode (Recommended for coding)
 
-1. **Start the backend server**
+**Two servers running simultaneously:**
+
+1. **Start the backend server** (Terminal 1):
    ```bash
    npm run dev
    ```
-   The server will run on `http://localhost:5000`
+   - Server runs on `http://localhost:5001`
+   - Provides API endpoints and serves static files in production
 
-2. **Start the frontend development server**
+2. **Start the React development server** (Terminal 2):
    ```bash
    npm run client
    ```
-   The React app will run on `http://localhost:3000`
+   - React app runs on `http://localhost:3000`
+   - Hot reloading for instant updates during development
+   - Automatically proxies API calls to backend server
 
-### Production Mode
+**Visit `http://localhost:3000` to use the app in development mode.**
 
-1. **Build the frontend**
+### Production Mode (For deployment)
+
+**Single server serves everything:**
+
+1. **Build the React app for production**
    ```bash
    npm run build
    ```
+   - Creates optimized production build in `client/build/`
 
 2. **Start the production server**
    ```bash
-   npm start
+   NODE_ENV=production npm start
    ```
+   - Single server on port 5001 serves both API and React app
+   - Visit `http://localhost:5001` to use the production version
+
+### Quick Start (One command)
+```bash
+# Install all dependencies and start development servers
+npm install && npm run install-client && npm run dev & npm run client
+```
 
 ## Usage
 
