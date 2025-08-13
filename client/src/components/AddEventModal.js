@@ -1,13 +1,22 @@
 import React, { useState, useRef } from 'react';
-import { X, Palette, Upload, Image, File, Trash2 } from 'lucide-react';
+import { X, Upload, Image, File, Trash2, Camera, BookOpen, Smile, Star, Target, MapPin, Calendar } from 'lucide-react';
 import MediaService from '../services/mediaService';
 
 const eventTypes = [
-  { label: 'Memory', value: 'memory', color: '#10B981' }, // green
-  { label: 'Journal', value: 'journal', color: '#3B82F6' }, // blue
-  { label: 'Emotion', value: 'emotion', color: '#EC4899' }, // pink
-  { label: 'Milestone', value: 'milestone', color: '#8B5CF6' }, // purple
-  { label: 'Goal', value: 'goal', color: '#F59E0B' }, // yellow
+  { label: 'Memory', value: 'memory', color: '#ea580c', icon: Camera, description: 'Preserve a special moment' },
+  { label: 'Journal', value: 'journal', color: '#2563eb', icon: BookOpen, description: 'Document your thoughts' },
+  { label: 'Emotion', value: 'emotion', color: '#dc2626', icon: Smile, description: 'Record how you feel' },
+  { label: 'Milestone', value: 'milestone', color: '#9333ea', icon: Star, description: 'Celebrate achievements' },
+  { label: 'Goal', value: 'goal', color: '#059669', icon: Target, description: 'Set your aspirations' },
+];
+
+const colorThemes = [
+  { name: 'orange', value: '#ea580c', class: 'clean-color-orange' },
+  { name: 'red', value: '#dc2626', class: 'clean-color-red' },
+  { name: 'purple', value: '#9333ea', class: 'clean-color-purple' },
+  { name: 'green', value: '#059669', class: 'clean-color-green' },
+  { name: 'blue', value: '#2563eb', class: 'clean-color-blue' },
+  { name: 'gray', value: '#6b7280', class: 'clean-color-gray' },
 ];
 
 const AddEventModal = ({ onClose, onAdd, initialType, lockType }) => {
@@ -18,23 +27,17 @@ const AddEventModal = ({ onClose, onAdd, initialType, lockType }) => {
     description: '',
     date: new Date().toISOString().slice(0, 16),
     category: '',
+    location: '',
     type: initialTypeObj.value,
     color: initialTypeObj.color
   });
 
-  const [showColorPicker, setShowColorPicker] = useState(false);
-  const [colorOverridden, setColorOverridden] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef();
   const mediaService = new MediaService();
 
-  const colorOptions = [
-    '#3B82F6', '#EF4444', '#10B981', '#F59E0B', 
-    '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16'
-  ];
-
-  // If lockType, do not allow changing type
+  // Handle form changes - colors are automatic based on type
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name === 'type' && lockType) return;
@@ -43,7 +46,7 @@ const AddEventModal = ({ onClose, onAdd, initialType, lockType }) => {
       setFormData(prev => ({
         ...prev,
         type: value,
-        color: colorOverridden ? prev.color : (selectedType ? selectedType.color : prev.color)
+        color: selectedType ? selectedType.color : prev.color
       }));
     } else {
       setFormData({
@@ -51,12 +54,6 @@ const AddEventModal = ({ onClose, onAdd, initialType, lockType }) => {
         [name]: value
       });
     }
-  };
-
-  const handleColorPick = (color) => {
-    setFormData({ ...formData, color });
-    setColorOverridden(true);
-    setShowColorPicker(false);
   };
 
   const handleFileUpload = async (files) => {
@@ -103,7 +100,7 @@ const AddEventModal = ({ onClose, onAdd, initialType, lockType }) => {
     setUploadedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.title.trim()) {
       alert('Please enter a title');
@@ -121,204 +118,181 @@ const AddEventModal = ({ onClose, onAdd, initialType, lockType }) => {
       }))
     };
     
-    onAdd(eventData);
+    try {
+      await onAdd(eventData);
+      onClose(); // Close the modal after successful add
+    } catch (error) {
+      console.error('Error adding event:', error);
+      alert('Failed to add event. Please try again.');
+    }
   };
 
+  const currentTypeObj = eventTypes.find(t => t.value === formData.type) || eventTypes[0];
+  const IconComponent = currentTypeObj.icon;
+
   return (
-    <div className="modal-overlay">
-      <div className="modal-content large-modal">
-        <button className="modal-close" onClick={onClose} aria-label="Close">
-          <span aria-hidden="true">&times;</span>
+    <div className="clean-modal-overlay">
+      <div className="clean-modal-content">
+        <button className="clean-modal-close" onClick={onClose} aria-label="Close">
+          <X size={16} />
         </button>
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* Event Type Dropdown or Label */}
-          <div className="form-group">
-            <label htmlFor="type" className="form-label">
-              Event Type *
-            </label>
-            {lockType ? (
-              <div className="input" style={{ background: '#f3f4f6', color: initialTypeObj.color, fontWeight: 600 }}>
-                {initialTypeObj.label}
-              </div>
-            ) : (
-              <select
-                id="type"
-                name="type"
-                value={formData.type}
-                onChange={handleChange}
-                className="input"
-                required
-              >
-                {eventTypes.map((type) => (
-                  <option key={type.value} value={type.value}>{type.label}</option>
+        
+        {/* Header */}
+        <div className="clean-modal-header">
+          <div className="clean-modal-icon">
+            <IconComponent size={24} />
+          </div>
+          <h2 className="clean-modal-title">
+            {formData.type === 'journal' ? 'Create Journal Entry' : 
+             formData.type === 'emotion' ? 'Record Emotion' :
+             formData.type === 'milestone' ? 'Log Milestone' :
+             formData.type === 'goal' ? 'Set Goal' : 'Capture Memory'}
+          </h2>
+          <p className="clean-modal-subtitle">{currentTypeObj.description}</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="clean-modal-form">
+          {/* Photo Upload Section */}
+          <div className="clean-upload-section">
+            <label className="clean-form-label">Photo (optional)</label>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileSelect}
+              multiple
+              accept="image/*,video/*,audio/*"
+              style={{ display: 'none' }}
+            />
+            
+            <div 
+              className="clean-upload-area"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Upload size={20} className="clean-upload-icon" />
+              <p className="clean-upload-text">
+                {uploading ? 'Uploading...' : 'Click to upload a photo'}
+              </p>
+              <p className="clean-upload-hint">PNG, JPG up to 10MB</p>
+            </div>
+
+            {uploadedFiles.length > 0 && (
+              <div className="clean-uploaded-files">
+                {uploadedFiles.map((file, index) => (
+                  <div key={index} className="clean-uploaded-file">
+                    <Image size={14} />
+                    <span className="clean-file-name">{file.originalName}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeFile(index)}
+                      className="clean-file-remove"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
                 ))}
-              </select>
+              </div>
             )}
           </div>
 
           {/* Title */}
-          <div className="form-group">
-            <label htmlFor="title" className="form-label">
-              Title *
-            </label>
+          <div className="clean-form-group">
+            <label className="clean-form-label">Title</label>
             <input
               type="text"
-              id="title"
               name="title"
               value={formData.title}
               onChange={handleChange}
-              className="input"
-              placeholder="Enter event title"
+              className="clean-form-input"
+              placeholder="Give it a memorable title..."
               required
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="description" className="form-label">
-              Description
-            </label>
+          {/* Description */}
+          <div className="clean-form-group">
+            <label className="clean-form-label">Description</label>
             <textarea
-              id="description"
               name="description"
               value={formData.description}
               onChange={handleChange}
-              className="input"
+              className="clean-form-textarea"
               rows="3"
-              placeholder="Enter event description (optional)"
+              placeholder="What made this moment special?"
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="date" className="form-label">
-              Date & Time *
-            </label>
-            <input
-              type="datetime-local"
-              id="date"
-              name="date"
-              value={formData.date}
-              onChange={handleChange}
-              className="input"
-              required
-            />
+          {/* Date and Location Row */}
+          <div className="clean-form-row">
+            <div className="clean-form-group">
+              <label className="clean-form-label">Date</label>
+              <input
+                type="date"
+                name="date"
+                value={formData.date.slice(0, 10)}
+                onChange={(e) => handleChange({
+                  target: { name: 'date', value: e.target.value + 'T' + (formData.date.slice(11) || '12:00') }
+                })}
+                className="clean-form-input"
+                required
+              />
+            </div>
+            <div className="clean-form-group">
+              <label className="clean-form-label">Location (optional)</label>
+              <input
+                type="text"
+                name="location"
+                value={formData.location || ''}
+                onChange={handleChange}
+                className="clean-form-input"
+                placeholder="Where was this?"
+              />
+            </div>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="category" className="form-label">
-              Category
-            </label>
+          {/* Tags */}
+          <div className="clean-form-group">
+            <label className="clean-form-label">Tags</label>
             <input
               type="text"
-              id="category"
               name="category"
               value={formData.category}
               onChange={handleChange}
-              className="input"
-              placeholder="e.g., Work, Personal, Travel"
+              className="clean-form-input"
+              placeholder="Add a tag..."
             />
           </div>
 
-          <div className="form-group">
-            <label className="form-label">Color</label>
-            <div className="flex items-center gap-3">
-              <div
-                className="w-8 h-8 rounded-full border-2 border-gray-300 cursor-pointer"
-                style={{ backgroundColor: formData.color }}
-                onClick={() => setShowColorPicker(!showColorPicker)}
-              />
-              <button
-                type="button"
-                onClick={() => setShowColorPicker(!showColorPicker)}
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
-              >
-                <Palette size={16} />
-                Choose Color
-              </button>
-            </div>
-            {showColorPicker && (
-              <div className="mt-3 flex gap-2 flex-wrap">
-                {colorOptions.map((color) => (
-                  <button
-                    key={color}
-                    type="button"
-                    className="w-8 h-8 rounded-full border-2 border-gray-300 hover:border-gray-400 transition-colors"
-                    style={{ backgroundColor: color }}
-                    onClick={() => handleColorPick(color)}
-                  />
-                ))}
-              </div>
-            )}
-            <div className="text-xs text-gray-400 mt-1">
-              Default color is based on event type. You can override it.
+          {/* Color Theme */}
+          <div className="clean-color-theme">
+            <label className="clean-form-label">Color Theme</label>
+            <div className="clean-color-options">
+              {colorThemes.map((theme) => (
+                <button
+                  key={theme.name}
+                  type="button"
+                  className={`clean-color-option ${theme.class} ${formData.color === theme.value ? 'selected' : ''}`}
+                  onClick={() => setFormData(prev => ({ ...prev, color: theme.value }))}
+                  aria-label={`Select ${theme.name} theme`}
+                />
+              ))}
             </div>
           </div>
 
-          {/* File Upload Section */}
-          <div className="form-group">
-            <label className="form-label">Media Files</label>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-gray-400 transition-colors">
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                accept="image/*,video/*,audio/*"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-                className="flex items-center gap-2 mx-auto text-gray-600 hover:text-gray-800 disabled:opacity-50"
-              >
-                <Upload size={20} />
-                {uploading ? 'Uploading...' : 'Choose Files'}
-              </button>
-              <p className="text-xs text-gray-500 mt-2">
-                Supports images, videos, and audio files (max 10MB each)
-              </p>
-            </div>
-            
-            {/* Uploaded Files Preview */}
-            {uploadedFiles.length > 0 && (
-              <div className="mt-4 space-y-2">
-                <h4 className="text-sm font-medium text-gray-700">Uploaded Files:</h4>
-                <div className="grid grid-cols-2 gap-2">
-                  {uploadedFiles.map((file, index) => (
-                    <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-                      {file.type.startsWith('image/') ? (
-                        <Image size={16} className="text-blue-500" />
-                      ) : (
-                        <File size={16} className="text-gray-500" />
-                      )}
-                      <span className="text-xs truncate flex-1">{file.originalName}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeFile(index)}
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="flex gap-3 pt-4">
+          {/* Action Buttons */}
+          <div className="clean-form-actions">
             <button
               type="button"
               onClick={onClose}
-              className="btn btn-secondary flex-1"
+              className="clean-btn-secondary"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="btn btn-primary flex-1"
+              className="clean-btn-primary"
+              style={{ backgroundColor: formData.color }}
             >
-              Add Event
+              Save {currentTypeObj.label}
             </button>
           </div>
         </form>
@@ -327,4 +301,4 @@ const AddEventModal = ({ onClose, onAdd, initialType, lockType }) => {
   );
 };
 
-export default AddEventModal; 
+export default AddEventModal;

@@ -111,7 +111,8 @@ export const AuthProvider = ({ children }) => {
     loading,
     login,
     register,
-    logout
+    logout,
+    signOut: logout  // Add alias for compatibility
   };
 
   return (

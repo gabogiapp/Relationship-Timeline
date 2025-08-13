@@ -130,6 +130,32 @@ export const db = {
     return data;
   },
 
+  // Get timeline events by timeline ID (for shared timelines)
+  getTimelineEvents: async (timelineId, options = {}) => {
+    if (!isSupabaseAvailable()) {
+      throw new Error('Supabase is not configured');
+    }
+    
+    let query = supabase
+      .from(TABLES.EVENTS)
+      .select('*')
+      .eq('timeline_id', timelineId)
+      .order('event_date', { ascending: false })
+      .order('event_time', { ascending: false });
+    
+    if (options.limit) {
+      query = query.limit(options.limit);
+    }
+    
+    if (options.category) {
+      query = query.eq('category', options.category);
+    }
+    
+    const { data, error } = await query;
+    if (error) throw error;
+    return data;
+  },
+
   // Create a new timeline event
   createEvent: async (eventData) => {
     if (!isSupabaseAvailable()) {

@@ -1,99 +1,102 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Plus, BookOpen, Smile, Award, Target, Image } from 'lucide-react';
+import React, { useState } from 'react';
+import { Plus, X, Camera, BookOpen, Smile, Star, Target } from 'lucide-react';
 
-const eventTypes = [
-  { label: 'Memory', value: 'memory', color: '#10B981', icon: Image },
-  { label: 'Journal', value: 'journal', color: '#3B82F6', icon: BookOpen },
-  { label: 'Emotion', value: 'emotion', color: '#EC4899', icon: Smile },
-  { label: 'Milestone', value: 'milestone', color: '#8B5CF6', icon: Award },
-  { label: 'Goal', value: 'goal', color: '#F59E0B', icon: Target },
+const memoryTypes = [
+  { 
+    label: 'Memory', 
+    value: 'memory', 
+    color: '#ff8a80', // Coral/pink for memories
+    icon: Camera,
+    description: 'Capture a moment'
+  },
+  { 
+    label: 'Emotion', 
+    value: 'emotion', 
+    color: '#ce93d8', // Purple for emotions
+    icon: Smile,
+    description: 'Record feelings'
+  },
+  { 
+    label: 'Journal', 
+    value: 'journal', 
+    color: '#a5d6a7', // Mint green for journals
+    icon: BookOpen,
+    description: 'Write thoughts'
+  },
+  { 
+    label: 'Milestone', 
+    value: 'milestone', 
+    color: '#ffcc80', // Orange for milestones
+    icon: Star,
+    description: 'Log an achievement'
+  },
+  { 
+    label: 'Goal', 
+    value: 'goal', 
+    color: '#c8e6c9', // Sage green for goals
+    icon: Target,
+    description: 'Set a target'
+  },
 ];
-
-const BUTTON_HEIGHT = 48; // px
-const GAP = 8; // px
 
 const FloatingActionButton = ({ onSelectType }) => {
   const [expanded, setExpanded] = useState(false);
-  const tubeRef = useRef(null);
 
-  // Calculate tube height dynamically
-  const visibleCount = expanded ? eventTypes.length : 0;
-  const tubeHeight = expanded
-  ? (BUTTON_HEIGHT + GAP) * (eventTypes.length - 1) + BUTTON_HEIGHT
-  : 0;
+  const handleToggle = () => {
+    setExpanded(!expanded);
+  };
 
-
-  useEffect(() => {
-    if (tubeRef.current) {
-      tubeRef.current.style.height = tubeHeight + 'px';
-    }
-  }, [tubeHeight]);
+  const handleTypeSelect = (type) => {
+    setExpanded(false);
+    onSelectType(type);
+  };
 
   return (
-    <div style={{ position: 'fixed', bottom: 32, right: 32, zIndex: 1100, display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-      <div
-        className={`fab-tube${expanded ? ' fab-tube-expanded' : ''}`}
-        ref={tubeRef}
-        style={{
-          position: 'absolute',
-          bottom: 56 + 12, // 56px main fab + 12px gap
-          right: 0,
-          width: 64,
-          height: tubeHeight,
-          background: 'rgba(243, 244, 246, 0.95)',
-          borderRadius: '2rem',
-          boxShadow: '0 8px 32px rgba(30, 41, 59, 0.10)',
-          display: 'block',
-          padding: 0,
-          opacity: expanded ? 1 : 0,
-          pointerEvents: expanded ? 'auto' : 'none',
-          transition: 'height 0.32s cubic-bezier(0.4,0,0.2,1), opacity 0.18s',
-          zIndex: 1100,
-          overflow: 'hidden',
-          position: 'relative', // <-- ADD THIS
-        }}
-      >
-        {eventTypes.map((type, idx) => {
-          const Icon = type.icon;
-          const bottomOffset = idx * (BUTTON_HEIGHT + GAP); // position from bottom up
-          return (
-            <button
-              key={type.value}
-              className={`fab-slot${expanded ? ' fab-slot-animate' : ''}`}
-              style={{
-                position: 'absolute',
-                bottom: bottomOffset,
-                backgroundColor: type.color,
-                width: '90%',
-                height: BUTTON_HEIGHT,
-                left: '5%',
-                transition: 'transform 0.3s ease, opacity 0.3s ease',
-                transitionDelay: expanded ? `${idx * 60 + 80}ms` : '0ms',
-                transform: expanded ? 'scale(1)' : 'scale(0.5)',
-                opacity: expanded ? 1 : 0,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: '9999px',
-              }}
-              title={type.label}
-              onClick={() => {
-                setExpanded(false);
-                onSelectType(type.value);
-              }}
-            >
-              <Icon size={22} />
-            </button>
-          );
-        })}
-      </div>
+    <div className="memory-fab-container">
+      {/* Action buttons tube */}
+      {expanded && (
+        <div className="memory-fab-tube">
+          {memoryTypes.map((type, index) => {
+            const Icon = type.icon;
+            return (
+              <div key={type.value} className="memory-fab-action-wrapper">
+                {/* Tooltip */}
+                <div className="memory-fab-tooltip">
+                  <div className="memory-fab-tooltip-title">{type.label}</div>
+                  <div className="memory-fab-tooltip-desc">{type.description}</div>
+                </div>
+                
+                {/* Action Button */}
+                <button
+                  onClick={() => handleTypeSelect(type.value)}
+                  className="memory-fab-action"
+                  style={{ 
+                    backgroundColor: type.color,
+                    animationDelay: `${index * 80}ms`
+                  }}
+                  title={type.label}
+                >
+                  <Icon size={20} className="memory-fab-action-icon" />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Main FAB Button */}
       <button
-        className="fab"
-        aria-label={expanded ? 'Close event type menu' : 'Add new event'}
-        style={{ zIndex: 1200, transition: 'transform 0.2s', transform: expanded ? 'rotate(45deg)' : 'none' }}
-        onClick={() => setExpanded((e) => !e)}
+        onClick={handleToggle}
+        className={`memory-fab-main ${expanded ? 'memory-fab-main-expanded' : ''}`}
+        aria-label={expanded ? 'Close menu' : 'Add new memory'}
       >
-        <Plus size={28} />
+        {/* Ripple effect */}
+        {expanded && <div className="memory-fab-ripple"></div>}
+        
+        {/* Icon */}
+        <div className={`memory-fab-icon ${expanded ? 'memory-fab-icon-rotated' : ''}`}>
+          {expanded ? <X size={24} /> : <Plus size={24} />}
+        </div>
       </button>
     </div>
   );
